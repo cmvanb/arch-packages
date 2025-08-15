@@ -1,0 +1,57 @@
+pkgname=libserial
+pkgver=v1.0.0.r95.ga471ae8
+pkgrel=1
+pkgdesc="A convenient, object oriented approach to accessing serial ports on Linux"
+arch=('x86_64' 'i686' 'aarch64')
+url="https://github.com/crayzeewulf/libserial"
+license=('BSD')
+depends=('gcc-libs')
+makedepends=('cmake' 'git' 'boost' 'doxygen' 'python-sphinx' 'python-sphinx_rtd_theme' 'graphviz')
+checkdepends=('gtest' 'boost-libs')
+md5sums=('SKIP')
+source=("git+https://github.com/crayzeewulf/libserial.git")
+
+pkgver() {
+    cd "$pkgname"
+    git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+}
+
+build() {
+    cd "$pkgname"
+
+    # Create build directory
+    mkdir -p build
+    cd build
+
+    # Configure with CMake
+    cmake .. \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_LIBDIR=lib
+
+    # Build the library
+    make
+
+    # Build documentation (optional)
+    make doc 2>/dev/null || true
+}
+
+package() {
+    cd "$pkgname/build"
+
+    # Install the library
+    make DESTDIR="$pkgdir" install
+
+    # Install documentation if built
+    if [ -d "docs" ]; then
+    install -Dm644 -t "$pkgdir/usr/share/doc/$pkgname/" docs/*
+    fi
+
+    # Install examples
+    cd ..
+    mkdir -p "$pkgdir/usr/share/doc/$pkgname/examples/"
+    cp -r examples/* "$pkgdir/usr/share/doc/$pkgname/examples/" 2>/dev/null || true
+
+    # Install license
+    install -Dm644 LICENSE.txt "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

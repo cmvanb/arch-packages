@@ -19,39 +19,31 @@ pkgver() {
 build() {
     cd "$pkgname"
 
-    # Create build directory
     mkdir -p build
     cd build
 
-    # Configure with CMake
     cmake .. \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=/usr \
-    -DCMAKE_INSTALL_LIBDIR=lib
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_LIBDIR=lib
 
-    # Build the library
     make
 
-    # Build documentation (optional)
     make doc 2>/dev/null || true
 }
 
 package() {
     cd "$pkgname/build"
 
-    # Install the library
     make DESTDIR="$pkgdir" install
 
-    # Install documentation if built
     if [ -d "docs" ]; then
-    install -Dm644 -t "$pkgdir/usr/share/doc/$pkgname/" docs/*
+        install -Dm644 -t "$pkgdir/usr/share/doc/$pkgname/" docs/*
     fi
 
-    # Install examples
     cd ..
     mkdir -p "$pkgdir/usr/share/doc/$pkgname/examples/"
     cp -r examples/* "$pkgdir/usr/share/doc/$pkgname/examples/" 2>/dev/null || true
 
-    # Install license
     install -Dm644 LICENSE.txt "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }
